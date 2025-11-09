@@ -58,7 +58,7 @@ export const profileConfig: ProfileConfig = {
 	bio: "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
 	links: [
 		{
-			name: "bilibili,
+			name: "bilibili",
 			icon: "fa6-brands:bilibili", 
 			url: "https://b23.tv/slUca1M",
 		},
