@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>资源下载映像 - Win11云母风格</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #7cb9e8 0%, #0078d7 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .mica-container {
+            background-color: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .mica-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0.1) 100%);
+            z-index: -1;
+        }
+
+        h1 {
+            color: #1a1a1a;
+            font-size: 28px;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+
+        .description {
+            color: #424242;
+            font-size: 16px;
+            line-height: 1.6;
+            margin-bottom: 30px;
+        }
+
+        .button {
+            background-color: #0078d7;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 12px 28px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 2px 8px rgba(0, 120, 215, 0.3);
+        }
+
+        .button:hover {
+            background-color: #0066b4;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 120, 215, 0.4);
+        }
+
+        .button:active {
+            transform: translateY(0);
+        }
+
+        .icon {
+            width: 20px;
+            height: 20px;
+        }
+
+        .footer {
+            margin-top: 30px;
+            color: #666;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="mica-container">
+        <h1>资源下载映像</h1>
+        <div class="description">
+            <p>此页面不是可访问的页面，仅作为资源下载映像使用。</p>
+            <p>如果您需要访问论坛或获取更多资源，请点击下方按钮跳转到我们的官方论坛。</p>
+        </div>
+        <button class="button" onclick="redirectToForum()">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M10 6H6C4.89543 6 4 6.89543 4 8V18C4 19.1046 4.89543 20 6 20H16C17.1046 20 18 19.1046 18 18V14M14 4H20M20 4V10M20 4L10 14" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            前往论坛
+        </button>
+        <div class="footer">
+            <p>bbs.rtxvdz.top</p>
+        </div>
+    </div>
+
+    <script>
+        function redirectToForum() {
+            window.location.href = 'https://bbs.rtxvdz.top';
+        }
+    </script>
+</body>
+</html>
