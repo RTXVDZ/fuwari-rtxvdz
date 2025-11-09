@@ -1,4 +1,5 @@
 import type { AUTO_MODE, DARK_MODE, LIGHT_MODE } from "@constants/constants";
+forceDarkMode: true
 
 export type SiteConfig = {
 	title: string;

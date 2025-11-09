@@ -1,4 +1,4 @@
-# 关于
+# about
  [本博客源码（原版）](https://github.com/saicaca/fuwari).
 
 ::github{repo="rtxvdz/fuwari"}
