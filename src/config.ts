@@ -53,7 +53,7 @@ export const navBarConfig: NavBarConfig = {
 };
 
 export const profileConfig: ProfileConfig = {
-	avatar: "https://bbs.rtxvdz.top/favicon/favicon-light-192.png", // Relative to the /src directory. Relative to the /public directory if it starts with '/'
+	avatar: "/favicon/favicon-light-192.png", // Relative to the /src directory. Relative to the /public directory if it starts with '/'
 	name: "rtxvdz",
 	bio: "b站rtxvdz，科技区大肘子",
 	links: [
