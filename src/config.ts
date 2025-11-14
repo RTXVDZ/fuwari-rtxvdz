@@ -9,6 +9,7 @@ import { LinkPreset } from "./types/config";
 
 export const siteConfig: SiteConfig = {
 	title: "rtxvdz",
+	description: "rtxvdz blog"
 	subtitle: "b站科技区大肘子",
 	lang: "zh_CN", // Language code, e.g. 'en', 'zh_CN', 'ja', etc.
 	themeColor: {
