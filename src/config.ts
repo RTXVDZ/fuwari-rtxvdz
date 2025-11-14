@@ -14,6 +14,7 @@ export const siteConfig: SiteConfig = {
 	themeColor: {
 		hue: 255, // Default hue for the theme color, from 0 to 360. e.g. red: 0, teal: 200, cyan: 250, pink: 345
 		fixed: true, // Hide the theme color picker for visitors
+		forceDarkMode: true, // 强制加载暗色主题css
 	},
 	banner: {
 		enable: true,
