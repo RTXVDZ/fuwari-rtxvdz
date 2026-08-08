@@ -1,12 +1,43 @@
 <script lang="ts">
 import Icon from "@iconify/svelte";
+import { onDestroy, onMount } from "svelte";
+
+const LS_BATCH_KEY = "gh-proxy-batch-mode";
+const LS_INPUT_KEY = "gh-proxy-input";
 
 let inputUrl = "";
 let outputUrl = "";
 let selectedSource = "hk-gh-proxy";
-let toastMsg = "";
-let toastVisible = false;
+let batchMode = false;
+let toastEl: HTMLDivElement | null = null;
 let toastTimer: ReturnType<typeof setTimeout> | null = null;
+// 记忆已恢复标志：恢复完成前不写入 localStorage，避免初始空值覆盖记忆
+let hydrated = false;
+
+onMount(() => {
+	// 恢复记忆：批量开关状态 + 上次输入内容
+	try {
+		const savedBatch = localStorage.getItem(LS_BATCH_KEY);
+		if (savedBatch === "1") batchMode = true;
+		const savedInput = localStorage.getItem(LS_INPUT_KEY);
+		if (savedInput !== null) inputUrl = savedInput;
+	} catch {
+		// localStorage 不可用时静默降级
+	}
+	hydrated = true;
+});
+
+// 记忆：输入内容与批量开关状态持久化，刷新/重进页面自动恢复
+$: {
+	if (hydrated && typeof localStorage !== "undefined") {
+		try {
+			localStorage.setItem(LS_INPUT_KEY, inputUrl);
+			localStorage.setItem(LS_BATCH_KEY, batchMode ? "1" : "0");
+		} catch {
+			// ignore
+		}
+	}
+}
 
 function generate() {
 	const val = inputUrl.trim();
@@ -14,10 +45,20 @@ function generate() {
 		showToast("请先输入链接");
 		return;
 	}
-	if (selectedSource === "hk-gh-proxy") {
-		outputUrl = `https://hk.gh-proxy.com/${val}`;
+	const prefix = selectedSource === "hk-gh-proxy" ? "https://hk.gh-proxy.com/" : "https://gh-proxy.com/";
+	if (batchMode) {
+		// 批量模式：每行一个地址，逐行加前缀，忽略空行
+		const lines = val
+			.split(/\r?\n/)
+			.map((l) => l.trim())
+			.filter((l) => l.length > 0);
+		if (lines.length === 0) {
+			showToast("请先输入链接");
+			return;
+		}
+		outputUrl = lines.map((l) => `${prefix}${l}`).join("\n");
 	} else {
-		outputUrl = `https://gh-proxy.com/${val}`;
+		outputUrl = `${prefix}${val}`;
 	}
 }
 
@@ -47,22 +88,57 @@ function copy() {
 
 function download() {
 	if (!outputUrl) return;
-	window.open(outputUrl, "_blank");
+	if (batchMode) {
+		// 批量模式下一键下载所有链接（逐个新窗口打开）
+		outputUrl
+			.split(/\r?\n/)
+			.map((l) => l.trim())
+			.filter((l) => l.length > 0)
+			.forEach((l) => window.open(l, "_blank"));
+	} else {
+		window.open(outputUrl, "_blank");
+	}
 }
 
 function clearAll() {
 	inputUrl = "";
 	outputUrl = "";
+	// 清空时同步清除记忆的输入内容
+	try {
+		localStorage.removeItem(LS_INPUT_KEY);
+	} catch {
+		// ignore
+	}
 }
 
+/**
+ * Toast 直接挂载到 <body> 下，而不是组件内部。
+ * 组件位于页面的 .z-30 内容容器（z-index + position 会创建层叠上下文）内，
+ * 若 Toast 渲染在组件中，其 z-index:9999 会被困在该层叠上下文里，
+ * 低于导航栏 #top-row 的 z-50，导致提示框被导航栏盖住。
+ * 挂到 <body> 后 Toast 以根层叠上下文参与比较，z-9999 必然置顶。
+ */
 function showToast(msg: string) {
-	toastMsg = msg;
-	toastVisible = true;
+	if (!toastEl) {
+		toastEl = document.createElement("div");
+		toastEl.className = "gh-toast";
+		document.body.appendChild(toastEl);
+	}
+	toastEl.textContent = msg;
+	// 强制回流，确保连续触发时过渡动画能重新播放
+	void toastEl.offsetWidth;
+	toastEl.classList.add("gh-toast-show");
 	if (toastTimer) clearTimeout(toastTimer);
 	toastTimer = setTimeout(() => {
-		toastVisible = false;
+		toastEl?.classList.remove("gh-toast-show");
 	}, 1500);
 }
+
+onDestroy(() => {
+	if (toastTimer) clearTimeout(toastTimer);
+	toastEl?.remove();
+	toastEl = null;
+});
 </script>
 
 <div class="card-base z-10 px-6 md:px-9 py-6 relative w-full">
@@ -110,16 +186,45 @@ function showToast(msg: string) {
       </div>
     </div>
 
+    <!-- 批量模式开关 -->
+    <div class="flex items-center justify-between">
+      <div>
+        <div class="text-sm font-medium text-neutral-700 dark:text-neutral-300">批量模式</div>
+        <div class="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">开启后每行粘贴一个 GitHub 链接，支持一次生成与复制全部</div>
+      </div>
+      <button
+        role="switch"
+        aria-checked={batchMode}
+        aria-label="Toggle Batch Mode"
+        on:click={() => { batchMode = !batchMode; }}
+        class="relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none bg-black/25 dark:bg-white/20"
+        class:bg-[var(--primary)]={batchMode}
+      >
+        <span class="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out"
+              class:translate-x-5={batchMode} class:translate-x-0={!batchMode}></span>
+      </button>
+    </div>
+
     <!-- 原始链接输入 -->
     <div>
       <label for="gh-input" class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">原始链接</label>
-      <input
-        id="gh-input"
-        type="text"
-        bind:value={inputUrl}
-        placeholder="https://github.com/user/repo/releases/download/v1.0/file.zip"
-        class="w-full px-4 py-2.5 rounded-lg bg-neutral-100 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 text-neutral-900 dark:text-neutral-100 placeholder-neutral-400 dark:placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent transition-all"
-      />
+      {#if batchMode}
+        <textarea
+          id="gh-input"
+          bind:value={inputUrl}
+          rows="6"
+          placeholder={"每行一个 GitHub 链接，例如：\nhttps://github.com/user/repo/releases/download/v1.0/file.zip\nhttps://github.com/user/repo/raw/main/script.sh"}
+          class="w-full px-4 py-2.5 rounded-lg bg-neutral-100 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 text-neutral-900 dark:text-neutral-100 placeholder-neutral-400 dark:placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent transition-all resize-y overflow-y-auto min-h-[8rem] leading-relaxed"
+        ></textarea>
+      {:else}
+        <input
+          id="gh-input"
+          type="text"
+          bind:value={inputUrl}
+          placeholder="https://github.com/user/repo/releases/download/v1.0/file.zip"
+          class="w-full px-4 py-2.5 rounded-lg bg-neutral-100 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 text-neutral-900 dark:text-neutral-100 placeholder-neutral-400 dark:placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent transition-all"
+        />
+      {/if}
     </div>
 
     <!-- 生成按钮 -->
@@ -127,20 +232,31 @@ function showToast(msg: string) {
       on:click={generate}
       class="w-full px-4 py-2.5 rounded-lg bg-[var(--primary)] text-white font-medium hover:opacity-90 active:scale-95 transition-all"
     >
-      生成反代链接
+      {batchMode ? "批量生成反代链接" : "生成反代链接"}
     </button>
 
     <!-- 反代链接输出 -->
     <div>
       <label for="gh-output" class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">反代链接</label>
-      <input
-        id="gh-output"
-        type="text"
-        readonly
-        value={outputUrl}
-        placeholder="点击上方「生成反代链接」按钮"
-        class="w-full px-4 py-2.5 rounded-lg bg-neutral-100 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 text-neutral-900 dark:text-neutral-100 placeholder-neutral-400 dark:placeholder-neutral-500 focus:outline-none"
-      />
+      {#if batchMode}
+        <textarea
+          id="gh-output"
+          readonly
+          value={outputUrl}
+          rows="6"
+          placeholder="点击上方「批量生成反代链接」按钮"
+          class="w-full px-4 py-2.5 rounded-lg bg-neutral-100 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 text-neutral-900 dark:text-neutral-100 placeholder-neutral-400 dark:placeholder-neutral-500 focus:outline-none resize-y overflow-y-auto min-h-[8rem] leading-relaxed"
+        ></textarea>
+      {:else}
+        <input
+          id="gh-output"
+          type="text"
+          readonly
+          value={outputUrl}
+          placeholder="点击上方「生成反代链接」按钮"
+          class="w-full px-4 py-2.5 rounded-lg bg-neutral-100 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 text-neutral-900 dark:text-neutral-100 placeholder-neutral-400 dark:placeholder-neutral-500 focus:outline-none"
+        />
+      {/if}
     </div>
 
     <!-- 操作按钮 -->
@@ -150,7 +266,7 @@ function showToast(msg: string) {
         class="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-[var(--primary)] text-white font-medium hover:opacity-90 active:scale-95 transition-all"
       >
         <Icon icon="material-symbols:content-copy" class="text-lg" />
-        <span>一键复制</span>
+        <span>{batchMode ? "一键复制全部" : "一键复制"}</span>
       </button>
       <button
         on:click={download}
@@ -170,10 +286,3 @@ function showToast(msg: string) {
     </div>
   </div>
 </div>
-
-<!-- Toast -->
-{#if toastVisible}
-  <div class="fixed top-8 left-1/2 -translate-x-1/2 px-8 py-4 rounded-xl bg-green-500 text-white text-lg font-bold shadow-2xl z-[9999] transition-all">
-    {toastMsg}
-  </div>
-{/if}

@@ -1,0 +1,20 @@
+---
+import Markdown from "@components/misc/Markdown.astro";
+import MainGridLayout from "../layouts/MainGridLayout.astro";
+import { Content } from "../updatelog/updatelog/updatelog.md";
+
+export const prerender = true;
+---
+
+<MainGridLayout title="更新日志" description="更新日志">
+    <div class="flex w-full rounded-[var(--radius-large)] overflow-hidden relative min-h-32">
+        <div class="card-base z-10 px-6 py-10 w-full flex flex-col items-center">
+            <h1 class="text-[2.5rem] md:text-[3rem] font-bold text-[var(--primary)] tracking-[0.35em] mb-10 select-none">
+                更新日志
+            </h1>
+            <Markdown class="mb-6 markdown-content w-full">
+                <Content />
+            </Markdown>
+        </div>
+    </div>
+</MainGridLayout>

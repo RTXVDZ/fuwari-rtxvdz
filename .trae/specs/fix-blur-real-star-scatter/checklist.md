@@ -1,0 +1,11 @@
+- [x] blur-bokeh-layer 不再包含大块彩色星云径向渐变光斑（仅小星点）
+- [x] blur-bokeh-layer 默认 opacity:0，仅在 html.blur-active 时显示
+- [x] body::before 星点数量增至 12+，尺寸 1.5–2px，alpha 提升
+- [x] 开启模糊（值≥20）时导航栏背景可见星点散景光斑，非彩色渐变
+- [x] 模糊值=0 时 backdrop-filter 为 blur(0)，星点锐利
+- [x] 模糊值=100 时 backdrop-filter 为 blur(120px)，星点扩散成大圆散景
+- [x] 模糊背景透明度固定为 55%，不随 blur-value 变化
+- [x] 关闭模糊后导航栏背景恢复原始深色夜空，无彩色光斑残留
+- [x] 默认（模糊关闭）状态下 blur-bokeh-layer 不绘制任何内容
+- [x] low-perf 模式下 blur-bokeh-layer 仍 display:none
+- [x] 控制台无报错（仅 Vite HMR 开发环境噪声）

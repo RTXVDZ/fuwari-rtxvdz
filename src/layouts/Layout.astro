@@ -66,7 +66,7 @@ let pageTitle: string;
 if (title) {
 	pageTitle = `${title} - ${siteConfig.title}`;
 } else {
-	pageTitle = `${siteConfig.title} - ${siteConfig.subtitle}`;
+	pageTitle = siteConfig.title;
 }
 
 const favicons: Favicon[] =
@@ -130,9 +130,8 @@ const bannerOffset =
 			document.documentElement.classList.add('is-page-lock');
 			const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 			const saveDataEnabled = navigator.connection && navigator.connection.saveData;
-			const lowCpu = navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 4;
-			const lowMemory = navigator.deviceMemory && navigator.deviceMemory <= 4;
-			if (prefersReducedMotion || saveDataEnabled || lowCpu || lowMemory) {
+			// 仅当用户明确开启减少动画或省流量模式时才进入 low-perf。
+			if (prefersReducedMotion || saveDataEnabled) {
 				document.documentElement.classList.add('low-perf');
 			}
 			// Check if force dark mode is enabled
@@ -161,7 +160,42 @@ const bannerOffset =
 
 			// Load the hue from local storage
 			const hue = localStorage.getItem('hue') || configHue;
-			document.documentElement.style.setProperty('--hue', hue);
+			const r = document.documentElement;
+			r.style.setProperty('--hue', hue);
+
+			// 预设关键 CSS 变量（page-bg/card-bg 等），避免等待 main.css 异步加载导致 FOUC
+			// 这些值与 variables.styl 的定义保持一致，main.css 加载后会覆盖（值相同所以无闪烁）
+			const isDark = r.classList.contains('dark');
+			const H = hue;
+			r.style.setProperty('--page-bg', isDark ? `oklch(0.16 0.014 ${H})` : `oklch(0.95 0.01 ${H})`);
+			r.style.setProperty('--card-bg', isDark ? `oklch(0.23 0.015 ${H})` : 'white');
+			r.style.setProperty('--btn-regular-bg', isDark ? `oklch(0.33 0.035 ${H})` : `oklch(0.95 0.025 ${H})`);
+			r.style.setProperty('--float-panel-bg', isDark ? `oklch(0.19 0.015 ${H})` : 'white');
+
+			// Load the custom background setting before paint (video src set later by loadCustomBg)
+			const customBgEnabled = localStorage.getItem('custom-bg-enabled') === 'true';
+			const customBgUrl = localStorage.getItem('custom-bg-url') || '';
+			if (customBgEnabled && customBgUrl.trim()) {
+				r.classList.add('custom-bg-active');
+			}
+
+			// Load the custom background gaussian blur strength before paint (avoid FOUC)
+			const customBgBlur = localStorage.getItem('custom-bg-blur');
+			if (customBgBlur !== null) {
+				r.style.setProperty('--custom-bg-blur', `${customBgBlur}px`);
+				// 纯数字变量用于 scale() 边缘遮盖计算（兼容旧版浏览器 calc）
+				r.style.setProperty('--custom-bg-blur-num', customBgBlur);
+			}
+
+			// Load the gaussian blur target (card / bg) before paint (avoid FOUC)
+			r.dataset.blurTarget = localStorage.getItem('custom-bg-blur-target') || 'card';
+
+			// Load the gaussian blur switch state before paint (avoid FOUC)
+			// 关闭开关后必须移除模糊效果，因此 CSS 规则以 data-blur-enabled 为前提
+			r.dataset.blurEnabled = localStorage.getItem('custom-bg-blur-enabled') === 'true' ? 'true' : 'false';
+
+			// Load the announcement float switch state before paint (avoid FOUC)
+			r.dataset.announcementEnabled = localStorage.getItem('announcement-enabled') === 'false' ? 'false' : 'true';
 
 			// calculate the --banner-height-extend, which needs to be a multiple of 4 to avoid blurry text
 			let offset = Math.floor(window.innerHeight * (BANNER_HEIGHT_EXTEND / 100));
@@ -177,12 +211,28 @@ const bannerOffset =
 		<style define:vars={{ 'page-width': `${PAGE_WIDTH}rem`, 'meteor-brightness': meteorBrightness, 'meteor-base-duration': `${meteorBaseDurationSec}s` }}>
 			:root {
 				--page-width: var(--page-width);
+				/* 自定义背景高斯模糊强度（px），默认 18px 让毛玻璃在深色背景下清晰可见 */
+				--custom-bg-blur: 18px;
+				/* 纯数字副本：用于 transform: scale() 边缘遮盖计算（filter 用带单位变量） */
+				--custom-bg-blur-num: 18;
 			}
 
 			body {
 				position: relative;
-				isolation: isolate;
-				background:
+				/* 注意：不能加 isolation: isolate。
+				 * 自定义背景层（custom-bg-video/img）被 detach 到 <html> 下，
+				 * 若 body 创建独立层叠上下文（backdrop root），卡片 backdrop-filter
+				 * 将采样不到 body 外的背景层，导致“操作卡片”模糊在 Chrome 中无效。 */
+				background: transparent;
+			}
+
+			/* 深色渐变底 + 光晕必须放在 <html>（最底层）而不是 <body>：
+			 * body 是定位元素（position:relative, z-index:auto），按 CSS 绘制顺序
+			 * 其背景会绘制在负 z-index 后代（流星 z:-1、星点/光晕 z:-2）之上，
+			 * 导致流星雨在 Chrome/Firefox 中被 body 不透明背景完全盖住而不可见。
+			 * 移到 html 后层级为：html 底 → 星点/光晕(z:-2) → 流星(z:-1) → 内容。 */
+			html {
+				background-image:
 					radial-gradient(circle at 15% 18%, rgba(56, 189, 248, 0.18), transparent 42%),
 					radial-gradient(circle at 82% 24%, rgba(125, 211, 252, 0.14), transparent 40%),
 					linear-gradient(180deg, #0a1024 0%, #101833 45%, #121d3a 100%);
@@ -194,15 +244,22 @@ const bannerOffset =
 				inset: 0;
 				z-index: -2;
 				pointer-events: none;
-				opacity: calc(0.42 * var(--meteor-brightness));
-				background-image:
-					radial-gradient(1px 1px at 10% 15%, rgba(255, 255, 255, 0.7) 100%, transparent 0),
-					radial-gradient(1px 1px at 28% 52%, rgba(255, 255, 255, 0.55) 100%, transparent 0),
-					radial-gradient(1px 1px at 46% 26%, rgba(255, 255, 255, 0.6) 100%, transparent 0),
-					radial-gradient(1px 1px at 63% 72%, rgba(255, 255, 255, 0.45) 100%, transparent 0),
-					radial-gradient(1px 1px at 82% 38%, rgba(255, 255, 255, 0.52) 100%, transparent 0);
-				background-size: 240px 240px;
-				background-repeat: repeat;
+				opacity: calc(0.55 * var(--meteor-brightness));
+			background-image:
+				radial-gradient(1.5px 1.5px at 8% 12%, rgba(255, 255, 255, 0.85) 100%, transparent 0),
+				radial-gradient(2px 2px at 22% 38%, rgba(255, 255, 255, 0.7) 100%, transparent 0),
+				radial-gradient(1.5px 1.5px at 38% 18%, rgba(255, 255, 255, 0.9) 100%, transparent 0),
+				radial-gradient(2px 2px at 55% 45%, rgba(255, 255, 255, 0.65) 100%, transparent 0),
+				radial-gradient(1.5px 1.5px at 72% 12%, rgba(255, 255, 255, 0.8) 100%, transparent 0),
+				radial-gradient(2px 2px at 88% 32%, rgba(255, 255, 255, 0.7) 100%, transparent 0),
+				radial-gradient(1.5px 1.5px at 15% 65%, rgba(255, 255, 255, 0.85) 100%, transparent 0),
+				radial-gradient(2px 2px at 45% 78%, rgba(255, 255, 255, 0.6) 100%, transparent 0),
+				radial-gradient(1.5px 1.5px at 78% 72%, rgba(255, 255, 255, 0.75) 100%, transparent 0),
+				radial-gradient(2px 2px at 92% 88%, rgba(255, 255, 255, 0.85) 100%, transparent 0),
+				radial-gradient(1.5px 1.5px at 30% 92%, rgba(255, 255, 255, 0.7) 100%, transparent 0),
+				radial-gradient(2px 2px at 62% 55%, rgba(255, 255, 255, 0.65) 100%, transparent 0);
+			background-size: 240px 240px;
+			background-repeat: repeat;
 			}
 
 			body::after {
@@ -228,6 +285,9 @@ const bannerOffset =
 		  data-overlayscrollbars-initialize
 	>
 		<ConfigCarrier></ConfigCarrier>
+		<!-- 自定义背景层：<img> 不受 ORB 限制，<video> 用于视频背景 -->
+		<video id="custom-bg-video" class="custom-bg-video" muted loop playsinline aria-hidden="true"></video>
+		<img id="custom-bg-img" class="custom-bg-img" alt="" referrerpolicy="no-referrer" aria-hidden="true" />
 		<slot />
 
 		<!-- 浮动公告 -->
@@ -308,6 +368,99 @@ const bannerOffset =
 	}
 }
 
+/**
+ * 自定义背景层（视频或图片）
+ * 用户在齿轮面板粘贴视频/图片链接，作为整页背景替代流星雨。
+ * video 用 <video> 标签，img 用 <img> 标签，均 object-fit:cover。
+ * 共用 fixed 全屏布局，z-index:-2。默认 display:none。
+ */
+.custom-bg-video,
+.custom-bg-img {
+	position: fixed;
+	top: 0;
+	left: 0;
+	/* 用 vw/vh 而不是 100%，避免 OverlayScrollbars 包装 body 后
+	 * 把 fixed 元素的包含块变成滚动 viewport，导致长页面滚动时
+	 * 背景“掉落”或宽度被内容宽度（如 551px）撑开/压缩。 */
+	width: 100vw;
+	height: 100vh;
+	object-fit: cover;
+	z-index: -2;
+	pointer-events: none;
+	display: none;
+	background: transparent;
+	/* 高斯模糊与边缘遮盖 scale 按“模糊对象”条件应用，见下方
+	 * html[data-blur-target="bg"] 规则（兼容未设置属性时的旧行为）。 */
+}
+
+html.custom-bg-active .custom-bg-video,
+html.custom-bg-active .custom-bg-img {
+	display: block;
+}
+
+/* 模糊对象 = 背景（图片/视频 / 默认流星雨星点背景）：
+ * 对自定义背景层应用高斯模糊（filter:blur() 兼容 Chrome 53+ / Firefox 35+ / Safari 9.1+），
+ * 配合动态 scale 放大遮盖模糊产生的边缘透明区；scale 使用纯数字变量避免 px 混用解析失败。
+ * 所有规则以 html[data-blur-enabled="true"] 为前提：关闭模糊开关后效果必须真正消失。
+ * html:not([data-blur-target]) 兼容旧版本用户（未设置模糊对象时保持原行为：模糊背景）。
+ * [data-blur-target="both"] = 背景与卡片同时模糊，继承本组背景模糊规则。
+ * 仅 bg / both 模式模糊背景；card 模式保持背景清晰，只由卡片 backdrop-filter 产生毛玻璃。
+ * 未开启自定义壁纸时，默认背景（星点 body::before + 流星 meteor-shower）同样参与模糊，
+ * 使高斯模糊开关不依赖自定义壁纸即可生效。 */
+html[data-blur-enabled="true"][data-blur-target="bg"] .custom-bg-video,
+html[data-blur-enabled="true"][data-blur-target="bg"] .custom-bg-img,
+html[data-blur-enabled="true"][data-blur-target="both"] .custom-bg-video,
+html[data-blur-enabled="true"][data-blur-target="both"] .custom-bg-img,
+html[data-blur-enabled="true"]:not([data-blur-target]) .custom-bg-video,
+html[data-blur-enabled="true"]:not([data-blur-target]) .custom-bg-img {
+	filter: blur(var(--custom-bg-blur, 18px));
+	transform: scale(calc(1 + var(--custom-bg-blur-num, 18) / 250));
+	will-change: transform, filter;
+}
+
+/* 未开启自定义壁纸时，默认背景层（星点/流星/光晕）跟随模糊，开关独立可用 */
+html[data-blur-enabled="true"][data-blur-target="bg"]:not(.custom-bg-active) body::before,
+html[data-blur-enabled="true"][data-blur-target="bg"]:not(.custom-bg-active) body::after,
+html[data-blur-enabled="true"][data-blur-target="bg"]:not(.custom-bg-active) .meteor-shower,
+html[data-blur-enabled="true"][data-blur-target="both"]:not(.custom-bg-active) body::before,
+html[data-blur-enabled="true"][data-blur-target="both"]:not(.custom-bg-active) body::after,
+html[data-blur-enabled="true"][data-blur-target="both"]:not(.custom-bg-active) .meteor-shower {
+	filter: blur(var(--custom-bg-blur, 18px));
+}
+
+/* 模糊对象 = 操作卡片 / 背景+卡片：
+ * 卡片切换为半透明背景（复用流星雨开启时的透明变量），配合 backdrop-filter
+ * 形成毛玻璃卡片效果；强度同样由 --custom-bg-blur 控制。
+ * [data-blur-target="both"] 与 [data-blur-target="card"] 共用本组卡片规则。
+ * 同样以 html[data-blur-enabled="true"] 为前提，关闭开关后卡片恢复不透明。 */
+html[data-blur-enabled="true"][data-blur-target="card"],
+html[data-blur-enabled="true"][data-blur-target="both"] {
+	--card-bg: var(--card-bg-transparent);
+	--float-panel-bg: var(--float-panel-bg-transparent);
+}
+
+html[data-blur-enabled="true"][data-blur-target="card"] .card-base,
+html[data-blur-enabled="true"][data-blur-target="card"] .float-panel,
+html[data-blur-enabled="true"][data-blur-target="both"] .card-base,
+html[data-blur-enabled="true"][data-blur-target="both"] .float-panel {
+	-webkit-backdrop-filter: blur(var(--custom-bg-blur, 12px));
+	backdrop-filter: blur(var(--custom-bg-blur, 12px));
+}
+
+/* 开启自定义背景时，隐藏原生流星雨/星点/光晕，让自定义背景成为唯一背景 */
+html.custom-bg-active .meteor-shower,
+html.custom-bg-active body::before,
+html.custom-bg-active body::after {
+	display: none;
+}
+
+/* 开启自定义背景时，清除 body 的不透明深色渐变背景。
+ * img/video 被 detachCustomBgFromBody() 移到 <html> 下（z-index:-2），
+ * 若 body 保留不透明背景，会遮挡住 z-index:-2 的自定义背景层。 */
+html.custom-bg-active body {
+	background: transparent;
+}
+
 .meteor-shower {
 	position: fixed;
 	inset: 0;
@@ -317,9 +470,9 @@ const bannerOffset =
 	contain: strict;
 }
 
-html.low-perf .meteor-shower {
-	display: none;
-}
+/* 流星雨不再跟随 low-perf（系统"减少动态效果"）隐藏：
+   仅由自定义背景强制覆盖（见上方 html.custom-bg-active .meteor-shower）。
+   流星雨为纯 CSS 动画、无网络请求，reduced-motion 下保留可满足用户预期。 */
 
 html.is-page-lock,
 html.is-page-lock body {
@@ -332,7 +485,7 @@ html.is-page-lock body * {
 
 .meteor {
 	position: absolute;
-	left: -35vw;
+	left: -12vw;
 	width: clamp(78px, 10vw, 150px);
 	height: 2px;
 	border-radius: 9999px;
@@ -375,7 +528,7 @@ html.is-page-lock body * {
 @keyframes meteor-slide {
 	0% {
 		opacity: 0;
-		transform: translate3d(-38vw, -22vh, 0) rotate(18deg);
+		transform: translate3d(-6vw, -10vh, 0) rotate(18deg);
 	}
 	10% {
 		opacity: 0.95;
@@ -385,16 +538,12 @@ html.is-page-lock body * {
 	}
 	100% {
 		opacity: 0;
-		transform: translate3d(138vw, 118vh, 0) rotate(18deg);
+		transform: translate3d(112vw, 110vh, 0) rotate(18deg);
 	}
 }
 
-@media (prefers-reduced-motion: reduce) {
-	.meteor {
-		animation: none;
-		opacity: 0.35;
-	}
-}
+/* 流星雨保持动画，不受系统"减少动态效果"影响（用户明确要求流星雨正常渲染）。
+   原规则：@media (prefers-reduced-motion: reduce) { .meteor { animation: none; opacity: 0.35; } } */
 </style>
 
 <script>
@@ -405,7 +554,7 @@ import {
 	// SizeObserverPlugin,
 	// ClickScrollPlugin
 } from 'overlayscrollbars';
-import {getHue, getStoredTheme, setHue, setTheme} from "../utils/setting-utils";
+import {getHue, getStoredTheme, loadCustomBg, setHue, setTheme} from "../utils/setting-utils";
 import {pathsEqual, url} from "../utils/url-utils";
 import {
 	BANNER_HEIGHT,
@@ -463,10 +612,29 @@ const bannerEnabled = !!document.getElementById('banner-wrapper')
 const lowPerfMode = document.documentElement.classList.contains('low-perf');
 
 function setClickOutsideToClose(panel: string, ignores: string[]) {
+	// Track whether mousedown started inside the panel or an ignored element.
+	// If so, suppress the next click-outside close so that slider drags and
+	// text selections inside the panel don't accidentally close it.
+	let mouseDownInside = false;
+	document.addEventListener("mousedown", event => {
+		const tDom = event.target;
+		if (!(tDom instanceof Node)) { mouseDownInside = false; return; }
+		let inside = false;
+		for (let ig of ignores) {
+			const ie = document.getElementById(ig);
+			if (ie && (ie == tDom || ie.contains(tDom))) { inside = true; break; }
+		}
+		mouseDownInside = inside;
+	});
 	document.addEventListener("click", event => {
 		let panelDom = document.getElementById(panel);
 		let tDom = event.target;
 		if (!(tDom instanceof Node)) return;		// Ensure the event target is an HTML Node
+		// If mousedown started inside the panel/switch, don't close on the subsequent click
+		if (mouseDownInside) {
+			mouseDownInside = false;
+			return;
+		}
 		for (let ig of ignores) {
 			let ie = document.getElementById(ig)
 			if (ie == tDom || (ie?.contains(tDom))) {
@@ -477,6 +645,7 @@ function setClickOutsideToClose(panel: string, ignores: string[]) {
 	});
 }
 setClickOutsideToClose("display-setting", ["display-setting", "display-settings-switch"])
+setClickOutsideToClose("glass-setting", ["glass-setting", "glass-settings-switch"])
 setClickOutsideToClose("nav-menu-panel", ["nav-menu-panel", "nav-menu-switch"])
 setClickOutsideToClose("search-panel", ["search-panel", "search-bar", "search-switch"])
 
@@ -568,11 +737,54 @@ function showBanner() {
 	banner.classList.remove('opacity-0', 'scale-105');
 }
 
+/** 把自定义背景元素从 body 移到 <html> 下。
+ * OverlayScrollbars 会把 body 内容包进 viewport，导致 fixed 元素
+ * 的包含块变成滚动容器。将背景元素挂到 <html> 下可彻底避免
+ * 长页面滚动时背景“掉落”或被压缩成内容宽度。 */
+function detachCustomBgFromBody() {
+	const video = document.getElementById('custom-bg-video');
+	const img = document.getElementById('custom-bg-img');
+	if (video && video.parentElement !== document.documentElement) {
+		document.documentElement.appendChild(video);
+	}
+	if (img && img.parentElement !== document.documentElement) {
+		document.documentElement.appendChild(img);
+	}
+}
+
+/**
+ * 在淡入动画结束后释放动画属性（animation: none）。
+ * 原因：Chrome 中即使 fade-in 动画已 finished（fill-mode: forwards 保持 100% 帧），
+ * 元素仍被视为"动画合成层"，这会破坏后代/自身的 backdrop-filter 采样，
+ * 导致"操作卡片"毛玻璃在 Chrome 中失效（Firefox 无此问题）。
+ * 动画结束后移除 animation 属性可彻底解除合成层状态，恢复 backdrop-filter。
+ * 注意：移除 animation 时 forwards 定格也会消失，opacity 会回落到 CSS 初始值 0，
+ * 因此必须同时显式设置 opacity: 1 保持动画结束状态，否则卡片会消失。
+ */
+function releaseOnloadAnimation(root: ParentNode = document) {
+	root.querySelectorAll('.onload-animation').forEach((el) => {
+		if (!(el instanceof HTMLElement)) return;
+		// 已释放过则跳过
+		if (el.dataset.animReleased === '1') return;
+		el.addEventListener('animationend', () => {
+			// 移除动画解除合成层；同时显式定格 opacity: 1（forwards 效果随 animation 移除而消失）
+			el.style.setProperty('animation', 'none', 'important');
+			el.style.setProperty('opacity', '1', 'important');
+			el.dataset.animReleased = '1';
+		}, { once: true });
+	});
+}
+
 function init() {
 	// disableAnimation()()		// TODO
 	loadTheme();
 	loadHue();
+	loadCustomBg();
+	// 在 OverlayScrollbars 包装 body 之前，先把背景层移出 body，
+	// 防止 fixed 定位受滚动容器影响。
+	detachCustomBgFromBody();
 	initCustomScrollbar();
+	releaseOnloadAnimation();
 	showBanner();
 }
 
@@ -609,7 +821,13 @@ const setup = () => {
 			navbar.classList.add('navbar-hidden')
 		}
 	})
-	window.swup.hooks.on('content:replace', initCustomScrollbar)
+	window.swup.hooks.on('content:replace', () => {
+		initCustomScrollbar();
+		// swup 跳转后重新应用全局设置，确保 custom-bg 在所有页面一致
+		loadCustomBg();
+		// 新页面元素重新绑定淡入动画释放（保证 backdrop-filter 在 Chrome 生效）
+		releaseOnloadAnimation();
+	})
 	window.swup.hooks.on('visit:start', (visit: {to: {url: string}}) => {
 		setInteractionLock(true);
 		// change banner height immediately when a link is clicked
@@ -798,6 +1016,11 @@ if (window.swup) {
 
 <!-- 公告样式 -->
 <style is:global>
+    /* 齿轮面板关闭小喇叭开关后隐藏整个公告浮动按钮（含未读红点与面板） */
+    html[data-announcement-enabled="false"] .announcement-float {
+        display: none !important;
+    }
+
     .announcement-float {
         position: fixed;
         right: 20px;

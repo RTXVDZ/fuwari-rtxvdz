@@ -1,3 +1,5 @@
+@import './markdown.css';
+
 @tailwind components;
 
 @layer components {
@@ -18,7 +20,7 @@
         @apply transition rounded-md p-1.5 -m-1.5 expand-animation;
     }
     .float-panel {
-        @apply top-[5.25rem] rounded-[var(--radius-large)] overflow-hidden bg-[var(--float-panel-bg)] transition shadow-xl dark:shadow-none
+        @apply top-[5.25rem] rounded-[var(--radius-large)] overflow-hidden bg-[var(--float-panel-bg)] transition shadow-xl dark:shadow-none z-40 border border-[var(--line-color)]
     }
     .float-panel-closed {
         @apply -translate-y-1 opacity-0 pointer-events-none
@@ -154,15 +156,15 @@
  * 只有当页面启用banner时才应用半透明效果
  */
 
-/* 默认导航栏样式 - 保持原有的card-base样式 */
-#navbar > div {
+/* 默认导航栏样式 - 仅作用于主卡片(card-base)，不碰动画条 */
+#navbar > div.card-base {
     background: var(--card-bg);
     border-radius: var(--radius-large);
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* 当页面有banner时，导航栏使用半透明效果（避免 :has 和高模糊导致重绘压力） */
-.enable-banner #navbar > div {
+/* 当页面有banner时，导航栏主卡片使用半透明效果 */
+.enable-banner #navbar > div.card-base {
     background: rgba(255, 255, 255, 0.55) !important;
     border: 1px solid rgba(255, 255, 255, 0.55) !important;
     border-radius: 0.75rem !important;
@@ -171,10 +173,23 @@
 }
 
 /* 暗色主题下的半透明效果 */
-:root.dark .enable-banner #navbar > div {
+:root.dark .enable-banner #navbar > div.card-base {
     background: rgba(0, 0, 0, 0.55) !important;
     border: 1px solid rgba(0, 0, 0, 0.55) !important;
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2) !important;
+}
+
+/* Navbar 顶部动画条（onload animation 用 absolute -top-8 条）
+ * 在 banner 开启时也要和主卡片保持一致的半透明背景，
+ * 否则主卡片半透明而动画条不透明会造成顶部“穿帮”。 */
+.enable-banner #navbar > div.absolute {
+    background-color: rgba(255, 255, 255, 0.55) !important;
+    background-color: color-mix(in srgb, var(--card-bg) 55%, transparent) !important;
+}
+
+:root.dark .enable-banner #navbar > div.absolute {
+    background-color: rgba(23, 23, 23, 0.55) !important;
+    background-color: color-mix(in srgb, var(--card-bg) 55%, transparent) !important;
 }
 
 /* 显示设置面板的半透明效果 */
@@ -192,8 +207,51 @@
 }
 
 /* 主题切换保护 - 禁用过渡动画以防止闪烁 */
-.is-theme-transitioning #navbar > div,
-.is-theme-transitioning .enable-banner #navbar > div,
+.is-theme-transitioning #navbar > div.card-base,
+.is-theme-transitioning .enable-banner #navbar > div.card-base,
 .is-theme-transitioning #display-setting {
     transition: none !important;
 }
+
+/**
+ * Glass-setting panel: ensure it sits above the announcement float button
+ * (z-index: 100). Also force pointer-events to auto when the panel is open
+ * (not .float-panel-closed) to prevent any inherited pointer-events:none
+ * from blocking interaction.
+ */
+#glass-setting:not(.float-panel-closed) {
+    z-index: 120;
+    pointer-events: auto;
+}
+#glass-setting:not(.float-panel-closed) * {
+    pointer-events: auto;
+}
+
+/**
+ * GitHub 反代页 Toast 提示
+ * 由 GHProxy.svelte 动态挂载到 <body> 下，避免被页面内容区
+ * （.z-30 层叠上下文）困住而被导航栏（z-50）遮挡。
+ */
+.gh-toast {
+    position: fixed;
+    top: 2rem;
+    left: 50%;
+    transform: translate(-50%, -0.5rem);
+    padding: 1rem 2rem;
+    border-radius: 0.75rem;
+    background-color: #22c55e;
+    color: #fff;
+    font-size: 1.125rem;
+    font-weight: 700;
+    box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.3);
+    z-index: 9999;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.gh-toast.gh-toast-show {
+    opacity: 1;
+    transform: translate(-50%, 0);
+}
+

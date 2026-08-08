@@ -13,7 +13,7 @@ info: 本文内容非常干，建议收藏，有任何侵权联系删（人工�
 `以下方案按推荐顺序排列`
 
 特别感谢 [Rmdcxy](https://cxybbs.top) 的联合投稿支持
-B站稿件[](https://www.bilibili.com/video/BV18W9fBJETq/)
+[B站稿件在这](https://www.bilibili.com/video/BV18W9fBJETq/)
 # 前引
 2026 年，仍有大量用户依赖网盘分享文件
 
@@ -23,9 +23,9 @@ B站稿件[](https://www.bilibili.com/video/BV18W9fBJETq/)
 
 > 1、多数网盘仍会`限速`或限`流量`
 
-> 2、网盘界面充斥~~广告~~，体验不佳
+> 2、网盘界面充斥~~**广告**~~，体验不佳
 
-> 3、下载往往需要`安装客户端`，~~折磨~~用户和分享者
+> 3、下载往往需要`安装客户端`，~~**折磨**~~用户和分享者
 
 有没有办法根治这些问题？**有**
 
@@ -33,7 +33,7 @@ B站稿件[](https://www.bilibili.com/video/BV18W9fBJETq/)
 
 原理：将文件上传到 GitHub Release，再通过镜像站生成高速下载链接。
 
-> 为什么用 Release 而非源码？Release 单文件限制 2.2GB，源码限制仅 100MB。
+> 为什么用 Release 而非源码？Release 单文件限制 2GB，源码限制仅 100MB。
 
 ---
 
@@ -51,13 +51,13 @@ B站稿件[](https://www.bilibili.com/video/BV18W9fBJETq/)
 
 ![](img/Pasted%20image%2020260426113107.png)
 
-点击 `Draft a new release`
+**点击** `Draft a new release`
 
 ![](img/Pasted%20image%2020260426113146.png)
 
 **3. 上传文件**
 
-按图中标注填写 Tag、标题等信息，将文件拖入上传区域：
+按图中标注填写 **Tag、标题等信息**，将文件拖入上传区域：
 
 ![](img/Pasted%20image%2020260426113450.png)
 
@@ -72,20 +72,22 @@ B站稿件[](https://www.bilibili.com/video/BV18W9fBJETq/)
 
 打开 [GitHub 加速下载链接生成](/gh-proxy/)，粘贴链接 → 一键复制：
 **推荐第一个源**
+>[!TIP]
+>一个源速度太慢，可以换另外一个
+
 ![](img/Pasted%20image%2020260503153504.png)**5. 速度实测**
 
 ![](img/Pasted%20image%2020260426120901.png)
 
-速度非常理想，**首推此方案**。
-
-
+速度非常理想,也能够存储中等体型文件,**首推此方案**。
 ---
 # 使用网盘直连解析助手
 
 原理：通过第三方解析服务，获取网盘文件的直连下载地址，绕过客户端和限速限制。
+***小文件推荐**
 
 >[!TIP]
->无需解析密码，链接永久有效
+>链接永久有效
 
 **1. 打开解析工具**
 
@@ -161,3 +163,4 @@ B站稿件[](https://www.bilibili.com/video/BV18W9fBJETq/)
 | GitHub Release + 镜像站 | 速度快；免费；无需部署；单文件可达 2.2GB | 依赖 GitHub 与镜像站可用性；上传大文件较慢                   |
 | Vercel 仓库托管          | 速度快；自定义域名               | 单文件 50MB（网页端）/ 100MB（Git）限制；需部署配置；便捷性不如解析助手 |
 | 网盘直连解析助手             | 速度快；零配置即用；支持主流网盘        | 依赖第三方解析服务稳定性；网盘可能更新反解析策略                    |
+# 评论区

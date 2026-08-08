@@ -1,5 +1,5 @@
 # about
- [本博客源码（原版）](https://bgithub.xyz/saicaca/fuwari).
+ [本博客源码（原版）](https://github.com/saicaca/fuwari).
 
 ::github{repo="onlyfork-qwq/fuwari"}
 # 博客免责声明及版权引用规范
@@ -31,6 +31,6 @@
 3. 因本声明产生的任何争议，双方应优先协商解决；协商不成的，均提交博主所在地有管辖权的人民法院诉讼解决。
 
 ### 联系方式
-- qq群：[戳我加群（戳不了搜索1038620619）](https://qm.qq.com/q/oZFo4lKm4g)
+- B站：[依托小肥物](https://b23.tv/slUca1M)
 ### 生效日期
 [2025年11月9日]

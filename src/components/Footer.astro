@@ -15,38 +15,35 @@ const currentYear = new Date().getFullYear();
         &copy; <span id="copyright-year">{currentYear}</span> {profileConfig.name}. 版权所有
         <a class="transition link text-[var(--primary)] font-medium" target="_blank" href={url('rss.xml')}>RSS</a> /
         <a class="transition link text-[var(--primary)] font-medium" target="_blank" href={url('sitemap-index.xml')}>Sitemap</a><br>
-        主题语言:
-        <a class="transition link text-[var(--primary)] font-medium" target="_blank" href="https://astro.build">Astro</a>
-        上游仓库:
-        <a class="transition link text-[var(--primary)] font-medium" target="_blank" href="https://github.com/saicaca/fuwari">Fuwari</a>
-        本站代码
-        <a class="transition link text-[var(--primary)] font-medium" target="_blank" href="https://github.com/onlyfork-qwq/fuwari-onlyfork-qwq">已开源</a>
-        <br />
-        EdgeHost
+        <a href="https://github.com/saicaca/fuwari/" target="_blank" rel="noopener noreferrer">
+            <img src="https://img.shields.io/badge/上游仓库-Fuwari-brightgreen?logo=github" alt="Svelte" class="inline-block h-4 align-text-bottom ml-1 hover:opacity-80 transition-opacity cursor-pointer" />
+        </a>
+        <a href="https://github.com/onlyfork-qwq/fuwari-rtxvdz/" target="_blank" rel="noopener noreferrer">
+            <img src="https://img.shields.io/badge/本站代码-已开源-blue?logo=github" alt="Svelte" class="inline-block h-4 align-text-bottom ml-1 hover:opacity-80 transition-opacity cursor-pointer" />
+        </a>
         <a href="https://vercel.com" target="_blank" rel="noopener noreferrer">
             <img src="https://img.shields.io/badge/Hosted-Vercel-blue?logo=Vercel" alt="Vercel" class="inline-block h-4 align-text-bottom ml-1 hover:opacity-80 transition-opacity cursor-pointer" />
         </a>
-        &
                 <a href="https://cloudflare-cn.com" target="_blank" rel="noopener noreferrer">
             <img src="https://img.shields.io/badge/Hosted-Cloudflare-blue?logo=Cloudflare" alt="cloudflare" class="inline-block h-4 align-text-bottom ml-1 hover:opacity-80 transition-opacity cursor-pointer" />
+        </a>
+        <a href="https://astro.build" target="_blank" rel="noopener noreferrer">
+            <img src="https://img.shields.io/badge/-Astro-Gray?logo=Astro" alt="Astro" class="inline-block h-4 align-text-bottom ml-1 hover:opacity-80 transition-opacity cursor-pointer" />
+        </a>
+        <a href="https://svelte.dev/" target="_blank" rel="noopener noreferrer">
+            <img src="https://img.shields.io/badge/-Svelte-Gray?logo=Svelte" alt="Svelte" class="inline-block h-4 align-text-bottom ml-1 hover:opacity-80 transition-opacity cursor-pointer" />
         </a>
         <br />
                 <a href="https://icp.gov.moe/?keyword=20251216" target="_blank" rel="noopener noreferrer">
             <img src="https://img.shields.io/badge/%E8%90%8Cicp%E5%A4%87-20251216%E5%8F%B7-brightgreen" alt="moe-icp" class="inline-block h-4 align-text-bottom ml-1 hover:opacity-80 transition-opacity cursor-pointer" />
         <br />
-        本站部分代码引用了
-        <a class="transition link text-[var(--primary)] font-medium" target="_blank" href="https://2x.nz">AcoFork</a>
-        和
-        <a class="transition link text-[var(--primary)] font-medium" target="_blank" href="https://blog.tianhw.top/">THW</a>
-        的代码开源代码，感谢对开源社区的贡献
-        <br/>
         本站已运行 <span id="run-time"></span>
     </div>
 </div>
 
 <script>
 function updateRunTime() {
-    const startDate = new Date('2025-11-03');
+    const startDate = new Date('2025-08-30');
     const now = new Date();
     
     let years = now.getFullYear() - startDate.getFullYear();

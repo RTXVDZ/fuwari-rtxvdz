@@ -1,0 +1,16 @@
+- [x] #top-row 内存在 .blur-source 元素
+- [x] z-30 内容容器内存在 .blur-source 元素
+- [x] .blur-source 使用 position:fixed，全屏覆盖（inset:0）
+- [x] .blur-source 默认 opacity:0，仅在 html.blur-active 时显示
+- [x] Firefox 中 .blur-source 的 opacity 为 0（@-moz-document 隐藏）
+- [x] low-perf 模式下 .blur-source display:none
+- [x] Chrome 中开启模糊（值≥20）后导航栏背景可见星点散景
+- [x] Chrome 中开启模糊后侧边栏卡片背景可见星点散景
+- [x] Chrome 中开启模糊后文章卡片背景可见星点散景
+- [x] 模糊值=0 时星点锐利，=100 时星点扩散成大圆散景
+- [x] 页面共有 2 个 .blur-source 元素
+- [x] 控制台无报错
+- [x] 开启自定义背景时，--custom-bg-url CSS 变量被设置为当前图片 URL
+- [x] 关闭自定义背景时，--custom-bg-url CSS 变量被移除
+- [x] 同时开启自定义背景 + 高斯模糊时，卡片背景显示自定义图片的模糊版
+- [x] 自定义背景下 blur=0/60/100 的模糊梯度明显
