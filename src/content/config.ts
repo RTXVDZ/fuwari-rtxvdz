@@ -21,6 +21,11 @@ const postsCollection = defineCollection({
 	}),
 });
 
+const specCollection = defineCollection({
+	schema: z.any(),
+});
+
 export const collections = {
 	posts: postsCollection,
+	spec: specCollection,
 };

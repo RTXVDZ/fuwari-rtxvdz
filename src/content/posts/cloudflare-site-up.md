@@ -108,7 +108,7 @@ cloudflare会给你一个XXX.pages.dev的域名和前缀，你要做的就是在
 cloudflare.14131413.xyz
 ```
 或者我们的超级二叉树树
-```test
+```text
 fenliu.072103.xyz
 ```
 
