@@ -33,3 +33,6 @@ yarn.lock
 # ide
 .idea
 *.iml
+
+# AMD API ’Ô∂œΩ≈±æ(∫¨√‹‘ø,ŒÃ·Ωª)
+amd-diagnose.ps1

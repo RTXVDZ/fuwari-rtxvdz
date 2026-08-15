@@ -377,13 +377,19 @@ const bannerOffset =
 .custom-bg-video,
 .custom-bg-img {
 	position: fixed;
-	top: 0;
-	left: 0;
-	/* 用 vw/vh 而不是 100%，避免 OverlayScrollbars 包装 body 后
-	 * 把 fixed 元素的包含块变成滚动 viewport，导致长页面滚动时
-	 * 背景“掉落”或宽度被内容宽度（如 551px）撑开/压缩。 */
-	width: 100vw;
-	height: 100vh;
+	/* inset 四向 + 百分比尺寸：fixed 元素相对视口定位，
+	 * width/height:100% 对替换元素（img/video）也强制生效，
+	 * 不依赖 vw/vh/dvw/dvh 单位解析——移动端地址栏、旧浏览器、
+	 * 诡异比例图片都不会导致“完整显示/没铺满/错位”。
+	 * （背景元素已被 detach 到 <html> 下，fixed 包含块始终是视口，
+	 *   不受 OverlayScrollbars 包装 body 影响。） */
+	inset: 0;
+	width: 100%;
+	height: 100%;
+	/* Tailwind Preflight 会给 img 加 max-width:100%；背景必须
+	 * 覆盖为 none，否则视口/滚动条宽度差异时背景被压回父容器
+	 * 宽度，造成“没铺满/错位”（移动端尤其明显）。 */
+	max-width: none;
 	object-fit: cover;
 	z-index: -2;
 	pointer-events: none;
@@ -414,7 +420,10 @@ html[data-blur-enabled="true"][data-blur-target="both"] .custom-bg-img,
 html[data-blur-enabled="true"]:not([data-blur-target]) .custom-bg-video,
 html[data-blur-enabled="true"]:not([data-blur-target]) .custom-bg-img {
 	filter: blur(var(--custom-bg-blur, 18px));
-	transform: scale(calc(1 + var(--custom-bg-blur-num, 18) / 250));
+	/* 遮盖系数 /150：blur 半径 r 需要边缘至少多出 r px 才不露边。
+	 * 旧值 /250（blur 18 → 每边仅 14px < 18px）在移动端高 DPR
+	 * 下边缘明显露缝，此为修复。 */
+	transform: scale(calc(1 + var(--custom-bg-blur-num, 18) / 150));
 	will-change: transform, filter;
 }
 
@@ -443,6 +452,18 @@ html[data-blur-enabled="true"][data-blur-target="card"] .card-base,
 html[data-blur-enabled="true"][data-blur-target="card"] .float-panel,
 html[data-blur-enabled="true"][data-blur-target="both"] .card-base,
 html[data-blur-enabled="true"][data-blur-target="both"] .float-panel {
+	-webkit-backdrop-filter: blur(var(--custom-bg-blur, 12px));
+	backdrop-filter: blur(var(--custom-bg-blur, 12px));
+}
+
+/* 评论区高斯模糊：跟随现有高斯模糊开关与强度，呈现与操作卡片一致的毛玻璃效果。
+ * [data-blur-target="card"] / "both" 时，给评论区容器叠加半透明背景 + backdrop-filter，
+ * 使 giscus 评论区（含 iframe 背景层）独立呈现毛玻璃；关闭开关或其它对象时恢复原状。 */
+html[data-blur-enabled="true"][data-blur-target="card"] .comment-glass,
+html[data-blur-enabled="true"][data-blur-target="both"] .comment-glass {
+	background: var(--card-bg-transparent);
+	border-radius: var(--radius-large);
+	padding: 1rem;
 	-webkit-backdrop-filter: blur(var(--custom-bg-blur, 12px));
 	backdrop-filter: blur(var(--custom-bg-blur, 12px));
 }

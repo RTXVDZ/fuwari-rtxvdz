@@ -98,5 +98,5 @@ export const expressiveCodeConfig: ExpressiveCodeConfig = {
 
 export const announcementConfig: AnnouncementConfig = {
 	enable: true, // 是否启用公告浮窗
-	text: "<a href='/updatelog/'>更新了啥?</a>(仅展示最新功能更新)\n<a href='/opa/'>他人的建议</a>\n更新文章 <a href='/posts/zhi-link/zhi-link/'>文件直连下载</a>", // 公告内容（支持 HTML）
+	text: "最新文章 <a href='/posts/zhi-link/zhi-link/'>文件直连下载</a>\n<a href='/updatelog/'>更新了啥?</a>|<a href='/opa/'>他人的建议</a>\nBeta功能不大稳定，遇问题请联系我们，谢谢！", // 公告内容（支持 HTML）
 };

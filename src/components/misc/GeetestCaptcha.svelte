@@ -153,8 +153,8 @@ function loadComments() {
 		"data-emit-metadata": giscusConfig.emitMetadata ? "1" : "0",
 		"data-input-position": giscusConfig.inputPosition || "bottom",
 		"data-theme": document.documentElement.classList.contains("dark")
-			? "dark"
-			: "light",
+			? "transparent_dark"
+			: "transparent_light",
 		"data-lang": giscusConfig.lang || "zh-CN",
 		"data-loading": "lazy",
 	};

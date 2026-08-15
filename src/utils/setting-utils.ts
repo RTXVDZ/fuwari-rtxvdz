@@ -206,6 +206,10 @@ export function setCustomBgUrl(url: string): void {
 }
 
 export function loadCustomBg(): void {
+	// swup 切页后背景元素被替换为新的空 video/img：重置去重状态，
+	// 强制对新元素重新应用 src，否则背景会“完全不显示”。
+	lastBgActive = null;
+	lastBgUrl = "";
 	applyCustomBg(getCustomBgEnabled(), getCustomBgUrl());
 }
 

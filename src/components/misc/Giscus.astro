@@ -24,7 +24,7 @@ const {
 } = Astro.props;
 ---
 
-<div id="giscus-container"></div>
+<div id="giscus-container" class="comment-glass"></div>
 
 <script define:vars={{ repo, repoId, category, categoryId, mapping, reactionsEnabled, emitMetadata, inputPosition, lang }}>
   function loadGiscus() {
@@ -32,7 +32,7 @@ const {
     if (!container) return;
 
     const isDark = document.documentElement.classList.contains('dark');
-    const theme = isDark ? 'dark' : 'light';
+    const theme = isDark ? 'transparent_dark' : 'transparent_light';
 
     const script = document.createElement('script');
     script.src = 'https://giscus.app/client.js';
@@ -59,7 +59,7 @@ const {
     const giscusFrame = document.querySelector('iframe[src*="giscus"]');
     if (giscusFrame) {
       const isDark = document.documentElement.classList.contains('dark');
-      const theme = isDark ? 'dark' : 'light';
+      const theme = isDark ? 'transparent_dark' : 'transparent_light';
 
       giscusFrame.contentWindow.postMessage({
         giscus: {
