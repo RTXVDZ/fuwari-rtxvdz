@@ -1,0 +1,147 @@
+---
+import sponsorsData from "../config/sponsors.json";
+import MainGridLayout from "../layouts/MainGridLayout.astro";
+import { Icon } from "astro-icon/components";
+
+export const prerender = true;
+
+const sponsors = sponsorsData;
+const qrs = [
+	{ name: "微信", img: "https://cdn.yx0.top/img/pay/wepay.png" },
+	{ name: "支付宝", img: "https://cdn.yx0.top/img/pay/alpay.png" },
+];
+const costs = [
+	{ label: "每年域名费用", value: "72 CNY" },
+	{ label: "部署平台费用", value: "-- CNY" },
+	{ label: "其他服务费用", value: "-- CNY" },
+];
+---
+<MainGridLayout title="赞助" description="赞助支持">
+	<div class="flex w-full rounded-[var(--radius-large)] overflow-hidden relative min-h-32">
+		<div class="card-base z-10 px-6 md:px-9 py-6 relative w-full">
+			<!-- 标题 -->
+			<div class="flex items-center gap-2 mb-2">
+				<Icon name="material-symbols:favorite" class="text-2xl text-[var(--primary)]" />
+				<h1 class="text-2xl font-bold text-neutral-900 dark:text-neutral-100">赞助</h1>
+			</div>
+			<p class="text-neutral-500 dark:text-neutral-400 mb-6">如果觉得我的内容不错可以支持我一下吗？感谢支持！</p>
+
+			<!-- 两个二维码 -->
+			<div class="text-center mb-5">
+				<button
+					id="qrToggle"
+					class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300 text-sm hover:opacity-90 active:scale-95 transition-all"
+				>
+					<Icon name="material-symbols:visibility-off" class="text-lg" id="eyeOff" />
+					<Icon name="material-symbols:visibility" class="text-lg hidden" id="eyeOn" />
+					<span id="qrToggleText">悬停或点击查看二维码</span>
+				</button>
+			</div>
+			<div class="grid grid-cols-1 sm:grid-cols-2 gap-5 max-w-xl mx-auto">
+				{qrs.map((qr) => (
+					<div
+						class="group rounded-2xl bg-neutral-50 dark:bg-neutral-800/50 border border-neutral-200 dark:border-neutral-800 p-5 text-center transition-all hover:border-[var(--primary)] hover:shadow-md cursor-pointer"
+					>
+						<img src={qr.img} alt={`${qr.name}赞赏码`} class="qr-img w-full max-w-52 mx-auto rounded-xl blur-lg group-hover:blur-none transition-all duration-300 select-none" />
+						<div class="mt-3 font-semibold text-neutral-900 dark:text-neutral-100">{qr.name}</div>
+						<div class="text-xs text-neutral-400">扫码支持</div>
+					</div>
+				))}
+			</div>
+
+			<!-- 成本卡片 -->
+			<div
+				class="mt-8 max-w-xl mx-auto rounded-2xl bg-neutral-50 dark:bg-neutral-800/50 border border-dashed border-neutral-300 dark:border-neutral-700 p-5"
+			>
+				<div class="flex items-center gap-2 mb-3">
+					<Icon name="material-symbols:receipt-long" class="text-lg text-[var(--primary)]" />
+					<h2 class="font-bold text-neutral-900 dark:text-neutral-100">网站成本</h2>
+				</div>
+				<div class="space-y-2">
+					{costs.map((c) => (
+						<div class="flex justify-between items-center text-sm">
+							<span class="text-neutral-600 dark:text-neutral-400">{c.label}</span>
+							<span class="font-mono font-semibold text-neutral-900 dark:text-neutral-100">{c.value}</span>
+						</div>
+					))}
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- 已赞助的小伙伴 -->
+	<div class="flex w-full rounded-[var(--radius-large)] overflow-hidden relative mt-4">
+		<div class="card-base z-10 px-6 md:px-9 py-6 relative w-full">
+			<div class="flex items-center justify-between mb-6">
+				<div class="flex items-center gap-2">
+					<Icon name="material-symbols:volunteer-activism" class="text-2xl text-[var(--primary)]" />
+					<h1 class="text-2xl font-bold text-neutral-900 dark:text-neutral-100">已赞助的小伙伴</h1>
+				</div>
+				<span
+					class="px-3 py-1 rounded-full bg-[var(--primary)]/10 text-[var(--primary)] text-sm font-medium"
+				>
+					{sponsors.length}
+				</span>
+			</div>
+			<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+				{sponsors.map((s, index) => (
+					<a
+						href={s.url}
+						target="_blank"
+						rel="noopener noreferrer"
+						class="group block p-4 rounded-xl bg-neutral-50 dark:bg-neutral-800/50 hover:bg-white dark:hover:bg-neutral-800 hover:shadow-lg hover:shadow-neutral-200/50 dark:hover:shadow-neutral-900/50 hover:-translate-y-1 transition-all duration-300 ease-out"
+						style={`animation: fadeInUp 0.5s ease-out ${index * 0.05}s both`}
+					>
+						<div class="flex items-center gap-3">
+							<div
+								class="w-12 h-12 rounded-full overflow-hidden bg-neutral-200 dark:bg-neutral-700 flex-shrink-0 ring-2 ring-transparent group-hover:ring-[var(--primary)]/30 transition-all duration-300"
+							>
+								<img src={s.icon} alt={`${s.name}的头像`} class="w-full h-full object-cover">
+							</div>
+							<div class="flex-1 min-w-0">
+								<div
+									class="font-semibold text-neutral-900 dark:text-neutral-100 group-hover:text-[var(--primary)] transition-colors duration-300 truncate"
+								>
+									{s.name}
+								</div>
+								<div class="text-sm text-neutral-500 dark:text-neutral-400 truncate">
+									{s.description}
+								</div>
+							</div>
+						</div>
+					</a>
+				))}
+			</div>
+			<div class="mt-8 text-center">
+				<p class="text-sm text-neutral-500 dark:text-neutral-400">感谢每一位支持者！</p>
+			</div>
+		</div>
+	</div>
+<script>
+	const qrToggle = document.getElementById("qrToggle");
+	const eyeOn = document.getElementById("eyeOn");
+	const eyeOff = document.getElementById("eyeOff");
+	const qrText = document.getElementById("qrToggleText");
+	qrToggle?.addEventListener("click", () => {
+		const imgs = document.querySelectorAll(".qr-img");
+		const hidden = imgs[0] ? imgs[0].classList.contains("blur-lg") : true;
+		imgs.forEach((img) => img.classList.toggle("blur-lg", !hidden));
+		eyeOn?.classList.toggle("hidden", !hidden);
+		eyeOff?.classList.toggle("hidden", hidden);
+		if (qrText) qrText.textContent = hidden ? "已显示，点击隐藏" : "悬停或点击查看二维码";
+	});
+</script>
+</MainGridLayout>
+
+<style>
+	@keyframes fadeInUp {
+		from {
+			opacity: 0;
+			transform: translateY(20px);
+		}
+		to {
+			opacity: 1;
+			transform: translateY(0);
+		}
+	}
+</style>

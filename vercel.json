@@ -1,8 +1,23 @@
 {
 	"routes": [
 		{
+			"src": "/zk",
+			"dest": "/posts/zhi-link/zhi-link",
+			"status": 301
+		},
+		{
+			"src": "/gh",
+			"dest": "/gh-proxy/",
+			"status": 301
+		},
+		{
 			"src": "/xmy",
 			"dest": "https://www.xmyvps.cn/aff/BPBABFOX",
+			"status": 301
+		},
+		{
+			"src": "/cs",
+			"dest": "https://filecdn.0y.hk/inst.zip",
 			"status": 301
 		}
 	]

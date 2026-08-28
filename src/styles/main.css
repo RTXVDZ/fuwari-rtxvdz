@@ -255,3 +255,245 @@
     transform: translate(-50%, 0);
 }
 
+/* ==========================================================================
+ * Beta 动画（Q 弹 / 顺滑交互动效）
+ * 默认开启，无条件生效（不再提供齿轮开关）。
+ * 弹性曲线 --beta-bounce 带轻微过冲，营造“Q 弹”手感。
+ * ========================================================================== */
+:root {
+    --beta-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* 图标 / 常规按钮：hover 弹性放大。
+ * :not(:active) 保证不与 Tailwind 的 active:scale-* 冲突——按下瞬间
+ * hover 效果让位给 active 压缩，松手再弹回，形成“按一下 Q 一下”的手感。 */
+.btn-plain,
+.btn-regular,
+.btn-card {
+    transition: transform 0.3s var(--beta-bounce), background-color 0.2s ease, color 0.2s ease;
+}
+.btn-plain:not(:active):hover,
+.btn-regular:not(:active):hover,
+.btn-card:not(:active):hover {
+    transform: scale(1.07);
+}
+
+/* 文章卡片（列表 / 归档正文卡片）：hover 上浮 + 阴影加深。
+ * navbar 等 card-base 不在 .content-wrapper 内，不受影响。 */
+.content-wrapper .card-base {
+    transition: transform 0.35s var(--beta-bounce), box-shadow 0.35s ease;
+    will-change: transform;
+}
+.content-wrapper .card-base:not(:active):hover {
+    transform: translateY(-0.25rem);
+    box-shadow: 0 0.75rem 1.5rem rgba(0, 0, 0, 0.18);
+}
+
+/* 侧边栏作者头像：hover 弹性放大 */
+.card-base a[aria-label="Go to About Page"] img {
+    transition: transform 0.35s var(--beta-bounce);
+}
+.card-base a[aria-label="Go to About Page"]:not(:active):hover img {
+    transform: scale(1.06);
+}
+
+/* ---- 入场动画：主内容 / 侧边栏弹性上浮淡入（替代纯淡入） ---- */
+@keyframes beta-rise {
+    from {
+        opacity: 0;
+        transform: translateY(1rem);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+#content-wrapper,
+#sidebar {
+    animation: 420ms beta-rise var(--beta-bounce);
+    animation-fill-mode: forwards;
+}
+/* animation 简写会重置 animation-delay，这里补回原有的错峰延迟 */
+#sidebar {
+    animation-delay: 40ms;
+}
+#content-wrapper {
+    animation-delay: var(--content-delay);
+}
+
+/* ---- 导航栏链接：hover 弹性放大 / 按下回弹 ---- */
+.nav-link {
+    transition: transform 0.3s var(--beta-bounce), background-color 0.2s ease, color 0.2s ease;
+}
+.nav-link:not(:active):hover {
+    transform: scale(1.06);
+}
+.nav-link:active {
+    transform: scale(0.92);
+}
+
+/* ---- 正文 / 标签链接：hover 轻微弹性放大 ---- */
+.link,
+.link-lg {
+    transition: transform 0.3s var(--beta-bounce), background-color 0.2s ease, color 0.2s ease;
+}
+.link:not(:active):hover,
+.link-lg:not(:active):hover {
+    transform: scale(1.03);
+}
+
+/* ---- 元数据小图标（日期 / 标签等）：hover 弹性放大 + 轻摆 ---- */
+.meta-icon {
+    transition: transform 0.3s var(--beta-bounce);
+}
+.meta-icon:not(:active):hover {
+    transform: scale(1.15) rotate(-4deg);
+}
+
+/* ---- 按钮按下回弹：更明显的“压下去、松手弹回” ---- */
+.btn-plain:active,
+.btn-regular:active,
+.btn-card:active {
+    transform: scale(0.92);
+    transition: transform 0.15s var(--beta-bounce);
+}
+
+/* ---- 文章卡片封面图：hover 缓慢缩放 ---- */
+.content-wrapper .card-base .group img {
+    transition: transform 0.5s var(--beta-bounce);
+}
+.content-wrapper .card-base .group:not(:active):hover img {
+    transform: scale(1.06);
+}
+
+/* ---- 侧边栏 widget 卡片：hover 上浮 + 阴影加深 ---- */
+#sidebar .card-base {
+    transition: transform 0.35s var(--beta-bounce), box-shadow 0.35s ease;
+    will-change: transform;
+}
+#sidebar .card-base:not(:active):hover {
+    transform: translateY(-0.25rem);
+    box-shadow: 0 0.75rem 1.5rem rgba(0, 0, 0, 0.18);
+}
+
+/* ---- 文章卡片「进入」区域：点击按压回弹（此前 h 无按压反馈，点击生硬） ---- */
+.content-wrapper .card-base a {
+    transition: transform 0.3s var(--beta-bounce), background-color 0.2s ease,
+        color 0.2s ease, opacity 0.2s ease, box-shadow 0.2s ease;
+}
+.content-wrapper .card-base a:active {
+    transform: scale(0.96);
+}
+
+/* ---- 公告小喇叭：hover 轻摆 + 点击按压回弹（点击生硬） ---- */
+.announcement-btn {
+    transition: transform 0.35s var(--beta-bounce), box-shadow 0.3s ease,
+        background-color 0.2s ease;
+}
+.announcement-btn:not(:active):hover {
+    transform: scale(1.08) rotate(6deg);
+}
+.announcement-btn:active {
+    transform: scale(0.9) rotate(-4deg);
+}
+
+/* 公告面板展开 / 收起：更顺滑的弹性 */
+.announcement-panel {
+    transition: opacity 0.3s ease, transform 0.4s var(--beta-bounce), visibility 0s;
+}
+
+/* ---- 文章右侧章节（TOC）：链接 hover 右移 / 点击按压；高亮条平滑移动 ---- */
+#toc a {
+    transition: transform 0.3s var(--beta-bounce), background-color 0.2s ease,
+        color 0.2s ease;
+}
+#toc a:not(:active):hover {
+    transform: translateX(0.25rem);
+}
+#toc a:active {
+    transform: scale(0.95);
+}
+/* 高亮指示条：随滚动章节切换时弹性滑动，替代生硬的瞬间跳变 */
+#active-indicator {
+    transition: top 0.45s var(--beta-bounce), height 0.45s var(--beta-bounce),
+        opacity 0.25s ease;
+}
+
+/* ---- TOC 章节点击：平滑滚动到目标（不再是瞬间跳转） ---- */
+:root {
+    scroll-behavior: smooth;
+}
+
+/* 设置面板开关（toggle-switch）滑块：切换时弹性滑动 */
+.toggle-switch span {
+    transition: transform 0.4s var(--beta-bounce), opacity 0.2s ease;
+}
+
+/* ---- 开关控件：全局统一 Q 弹（role="switch"），新增界面自动继承 ---- */
+button[role="switch"] {
+    transition-property: transform, background-color, border-color, box-shadow;
+    transition-duration: 0.4s, 0.3s, 0.3s, 0.3s;
+    transition-timing-function: cubic-bezier(0.34, 1.56, 0.64, 1), ease, ease, ease;
+}
+button[role="switch"]:active {
+    transform: scale(0.92);
+}
+/* 滑块：切换时弹性回弹，Q 弹感明显 */
+button[role="switch"] > span {
+    transition: transform 0.45s cubic-bezier(0.34, 1.56, 0.64, 1), background-color 0.3s ease;
+}
+
+/* 模糊滑块 / 数值 / 对象选择按钮：更柔和的 hover 与拖动反馈 */
+.blur-slider::-webkit-slider-thumb,
+.blur-slider::-moz-range-thumb {
+    transition: background 0.2s ease, transform 0.25s ease;
+}
+.blur-slider::-webkit-slider-thumb:active,
+.blur-slider::-moz-range-thumb:active {
+    transform: scale(1.25);
+}
+.blur-target-btn {
+    transition: background-color 0.25s ease, color 0.25s ease, opacity 0.15s ease;
+}
+
+/* =========================================================
+ * 全局交互动效系统（默认启用、不依赖 Beta 开关）
+ * 一律用「元素选择器」覆盖全站，任何新页面只要使用原生
+ *  button / a / role="switch" 标签，就自动获得一致的 Q 弹
+ * 与丝滑，无需再逐个加 class（拒绝堆屎山）。
+ * ========================================================= */
+
+/* 1) 所有按钮：按下缩小、松开弹性回弹 */
+button {
+    transition-property: transform, background-color, color, border-color, opacity, box-shadow;
+    transition-duration: 0.35s, 0.2s, 0.2s, 0.2s, 0.2s, 0.2s;
+    transition-timing-function: cubic-bezier(0.34, 1.56, 0.64, 1), ease, ease, ease, ease, ease;
+    -webkit-tap-highlight-color: transparent;
+}
+button:active {
+    transform: scale(0.94);
+}
+
+/* 2) 右上角齿轮入口：点击时图标顺势转动，强化拟物感 */
+#glass-settings-switch svg {
+    transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+#glass-settings-switch:hover svg {
+    transform: rotate(45deg);
+}
+#glass-settings-switch:active svg {
+    transform: rotate(180deg) scale(0.9);
+}
+
+/* 3) 所有链接 hover 动效：改用 letter-spacing（字间距舒展）和 text-shadow（悬浮阴影）
+ *    彻底抛弃 transform，杜绝子元素 absolute 定位“跑掉”的屎山问题，
+ *    任何新组件/新标题/新装饰元素都自动兼容，无需加 relative。 */
+a {
+    transition: letter-spacing 0.3s cubic-bezier(0.34, 1.56, 0.64, 1),
+        text-shadow 0.3s ease, color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
+}
+a:hover {
+    letter-spacing: 0.5px;
+    text-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+

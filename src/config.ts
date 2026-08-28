@@ -28,7 +28,7 @@ export const siteConfig: SiteConfig = {
 	},
 	favicon: [
 		{
-			src: "https://q2.qlogo.cn/headimg_dl?dst_uin=334063894&spec=0&v=3", // 网站图标路径（相对 /public）；v = 1 为缓存版本号，头像更新时递增
+			src: "/avatar.png", // 网站图标路径（/public 根目录，绝对路径以 / 开头，保证任意页面下都能正确加载）
 			theme: "light", // 对应主题（light / dark，可选）
 			sizes: "32x32", // 图标尺寸声明（可选）
 		},
@@ -61,15 +61,25 @@ export const navBarConfig: NavBarConfig = {
 			external: false, // 是否为外链（false 表示站内）
 		},
 		{
-			name: "GH加速下载", // 导航名称：GitHub反代
+			name: "赞助", // 导航名称：赞助
+			url: "/sponsor/", // 站内链接
+			external: false, // 是否为外链（false 表示站内）
+		},
+		{
+			name: "GH反代", // 导航名称：GitHub反代
 			url: "/gh-proxy/", // 站内链接
+			external: false, // 是否为外链（false 表示站内）
+		},
+		{
+			name: "文件索引", // 导航名称：文件索引
+			url: "/gui/", // 站内链接
 			external: false, // 是否为外链（false 表示站内）
 		},
 	],
 };
 
 export const profileConfig: ProfileConfig = {
-	avatar: "https://q2.qlogo.cn/headimg_dl?dst_uin=334063894&spec=0&v=3", // 头像地址
+	avatar: "/avatar.png", // 头像地址（/public 根目录，绝对路径以 / 开头，避免子页面下相对路径解析成 404）
 	name: "onlyfork依托小肥物", // 昵称
 	bioFile: "/rubbish.txt", //随机废话
 	links: [

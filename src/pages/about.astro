@@ -24,7 +24,7 @@ const config = profileConfig;
     <div class="flex w-full rounded-[var(--radius-large)] overflow-hidden relative min-h-32">
         <div class="card-base z-10 px-6 py-10 relative w-full flex flex-col items-center">
             <!-- 头像 -->
-            <img src={config.avatar} alt={config.name}
+            <img id="about-avatar" src={config.avatar} alt={config.name}
                  class="w-36 h-36 rounded-full object-cover ring-4 ring-[var(--primary)]/30 mb-5" />
 
             <!-- 名字和简介 -->
@@ -99,3 +99,12 @@ const config = profileConfig;
         </div>
     </div>
 </MainGridLayout>
+
+<script>
+    // 头像实时刷新：追加时间戳参数，强制浏览器重新请求，避免使用缓存的旧头像
+    const avatarEl = document.getElementById("about-avatar");
+    if (avatarEl) {
+        const sep = avatarEl.src.includes("?") ? "&" : "?";
+        avatarEl.src = `${avatarEl.src}${sep}t=${Date.now()}`;
+    }
+</script>

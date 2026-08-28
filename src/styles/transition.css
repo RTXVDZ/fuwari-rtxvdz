@@ -1,25 +1,41 @@
-/* Page transition animations with Swup */
+/* Page transition animations with Swup
+ * 克制的优雅过渡（不含填充色块）：切页时内容轻微下坠 + 淡出 + 轻微柔化，
+ * 新页则自下而上浮起并聚焦，全程保持背景连续，视觉高级又不炸裂。 */
 html.is-changing .transition-swup-fade {
-    transition: opacity 140ms ease-out;
+    transition: opacity 220ms ease-out, transform 300ms cubic-bezier(0.22, 1, 0.36, 1), filter 220ms ease-out;
 }
 html.is-animating .transition-swup-fade {
     opacity: 0;
+    transform: translateY(1rem);
+    filter: blur(2px);
 }
 
-/* Fade-in animations for components */
+/* 右侧 TOC 是 fixed 定位载体：只淡出，不浮起/柔化，避免 transform 创建包含块击穿定位 */
+html.is-changing #toc,
+html.is-animating #toc {
+    transition: opacity 220ms ease-out;
+    transform: none !important;
+    filter: none !important;
+}
+
+/* Fade-in animations for components（浮起 + 聚焦 + 淡入） */
 @keyframes fade-in {
     0% {
         opacity: 0;
+        transform: translateY(0.75rem);
+        filter: blur(4px);
     }
     100% {
         opacity: 1;
+        transform: translateY(0);
+        filter: blur(0);
     }
 }
 
 /* Main components */
 .onload-animation {
     opacity: 0;
-    animation: 160ms fade-in ease-out;
+    animation: 260ms fade-in cubic-bezier(0.22, 1, 0.36, 1);
     animation-fill-mode: forwards;
 }
 #navbar {

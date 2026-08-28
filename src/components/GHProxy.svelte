@@ -230,7 +230,8 @@ onDestroy(() => {
     <!-- 生成按钮 -->
     <button
       on:click={generate}
-      class="w-full px-4 py-2.5 rounded-lg bg-[var(--primary)] text-white font-medium hover:opacity-90 active:scale-95 transition-all"
+      class="w-full px-4 py-2.5 rounded-lg bg-[var(--primary)] text-white font-medium border-0 hover:opacity-90 active:scale-95 transition-all"
+      style="background-color: var(--primary); border-color: var(--primary)"
     >
       {batchMode ? "批量生成反代链接" : "生成反代链接"}
     </button>

@@ -1,5 +1,5 @@
 ---
-title: 丢掉网盘！直连下载
+title: 丢掉网盘！文件直链下载！
 published: 2026-04-26
 order: 0
 category: 下载

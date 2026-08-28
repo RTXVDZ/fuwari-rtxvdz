@@ -168,6 +168,7 @@ function loadComments() {
 	script.async = true;
 
 	container.appendChild(script);
+	container.classList.add("giscus-loaded");
 	console.log("评论框已加载");
 }
 
@@ -180,17 +181,18 @@ onMount(() => {
 		if (document.visibilityState === "visible" && isVerified) {
 			// 页面重新可见时重置验证状态
 			resetVerification();
-			// 清除评论框
+			// 清除评论框，同时移除毛玻璃标记，避免残留空扁框
 			const container = document.getElementById(commentsContainerId);
 			if (container) {
 				container.innerHTML = "";
+				container.classList.remove("giscus-loaded");
 			}
 		}
 	});
 });
 </script>
 
-<div class="geetest-captcha-container">
+<div class="geetest-captcha-container" class:captcha-hidden={isVerified}>
   {#if isLoading}
     <div class="loading-container">
       <div class="loading-spinner"></div>
@@ -211,15 +213,6 @@ onMount(() => {
         点击显示验证码
       </button>
     </div>
-  {:else}
-    <div class="verified-container">
-      <div class="success-message">
-        <svg class="success-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M20 6L9 17l-5-5" />
-        </svg>
-        <span>验证成功！评论已显示</span>
-      </div>
-    </div>
   {/if}
 </div>
 
@@ -230,6 +223,11 @@ onMount(() => {
     background: var(--card-bg);
     border-radius: var(--radius-large);
     border: 1px solid var(--line-divider);
+  }
+
+  /* 验证通过后评论已显示，隐藏整个验证容器，避免出现多余的“验证成功”提示框 */
+  .captcha-hidden {
+    display: none;
   }
   
   .loading-container {
@@ -293,25 +291,4 @@ onMount(() => {
     min-height: 40px;
   }
   
-  .verified-container {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0.5rem;
-  }
-  
-  .success-message {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    color: #10b981;
-    font-weight: 500;
-  }
-  
-  .success-icon {
-    width: 20px;
-    height: 20px;
-  }
-  
-
 </style>

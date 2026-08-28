@@ -1,0 +1,11 @@
+---
+import MainGridLayout from "../layouts/MainGridLayout.astro";
+import FileIndex from "../components/FileIndex.svelte";
+
+export const prerender = true;
+---
+<MainGridLayout title="文件索引" description="文件索引列表">
+	<div class="flex w-full rounded-[var(--radius-large)] overflow-hidden relative min-h-32">
+		<FileIndex client:only="svelte" />
+	</div>
+</MainGridLayout>

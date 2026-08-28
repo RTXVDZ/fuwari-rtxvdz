@@ -232,6 +232,11 @@ const bannerOffset =
 			 * 导致流星雨在 Chrome/Firefox 中被 body 不透明背景完全盖住而不可见。
 			 * 移到 html 后层级为：html 底 → 星点/光晕(z:-2) → 流星(z:-1) → 内容。 */
 			html {
+				/* background-attachment: fixed：让渐变底固定在视口，
+				 * 与星点/光晕/流星（均为 position: fixed）完全同步，
+				 * 否则长页面滚动时渐变跟随文档移动，与固定背景层错位，
+				 * 出现“几块拼接”的色差分界。 */
+				background-attachment: fixed;
 				background-image:
 					radial-gradient(circle at 15% 18%, rgba(56, 189, 248, 0.18), transparent 42%),
 					radial-gradient(circle at 82% 24%, rgba(125, 211, 252, 0.14), transparent 40%),
@@ -459,8 +464,8 @@ html[data-blur-enabled="true"][data-blur-target="both"] .float-panel {
 /* 评论区高斯模糊：跟随现有高斯模糊开关与强度，呈现与操作卡片一致的毛玻璃效果。
  * [data-blur-target="card"] / "both" 时，给评论区容器叠加半透明背景 + backdrop-filter，
  * 使 giscus 评论区（含 iframe 背景层）独立呈现毛玻璃；关闭开关或其它对象时恢复原状。 */
-html[data-blur-enabled="true"][data-blur-target="card"] .comment-glass,
-html[data-blur-enabled="true"][data-blur-target="both"] .comment-glass {
+html[data-blur-enabled="true"][data-blur-target="card"] .comment-glass.giscus-loaded,
+html[data-blur-enabled="true"][data-blur-target="both"] .comment-glass.giscus-loaded {
 	background: var(--card-bg-transparent);
 	border-radius: var(--radius-large);
 	padding: 1rem;
@@ -584,50 +589,6 @@ import {
 	MAIN_PANEL_OVERLAPS_BANNER_HEIGHT
 } from "../constants/constants";
 import { siteConfig } from '../config';
-
-/* Preload fonts */
-// (async function() {
-// 	try {
-// 		await Promise.all([
-// 			document.fonts.load("400 1em Roboto"),
-// 			document.fonts.load("700 1em Roboto"),
-// 		]);
-// 		document.body.classList.remove("hidden");
-// 	} catch (error) {
-// 		console.log("Failed to load fonts:", error);
-// 	}
-// })();
-
-/* TODO This is a temporary solution for style flicker issue when the transition is activated */
-/* issue link: https://github.com/withastro/astro/issues/8711, the solution get from here too */
-/* update: fixed in Astro 3.2.4 */
-/*
-function disableAnimation() {
-	const css = document.createElement('style')
-	css.appendChild(
-		document.createTextNode(
-			`*{
-              -webkit-transition:none!important;
-              -moz-transition:none!important;
-              -o-transition:none!important;
-              -ms-transition:none!important;
-              transition:none!important
-              }`
-		)
-	)
-	document.head.appendChild(css)
-
-	return () => {
-		// Force restyle
-		;(() => window.getComputedStyle(document.body))()
-
-		// Wait for next tick before removing
-		setTimeout(() => {
-			document.head.removeChild(css)
-		}, 1)
-	}
-}
-*/
 
 const bannerEnabled = !!document.getElementById('banner-wrapper')
 const lowPerfMode = document.documentElement.classList.contains('low-perf');
@@ -797,7 +758,6 @@ function releaseOnloadAnimation(root: ParentNode = document) {
 }
 
 function init() {
-	// disableAnimation()()		// TODO
 	loadTheme();
 	loadHue();
 	loadCustomBg();
@@ -813,18 +773,6 @@ function init() {
 init();
 
 const setup = () => {
-	// TODO: temp solution to change the height of the banner
-/*
-	window.swup.hooks.on('animation:out:start', () => {
-		const path = window.location.pathname
-		const body = document.querySelector('body')
-		if (path[path.length - 1] === '/' && !body.classList.contains('is-home')) {
-			body.classList.add('is-home')
-		} else if (path[path.length - 1] !== '/' && body.classList.contains('is-home')) {
-			body.classList.remove('is-home')
-		}
-	})
-*/
 	window.swup.hooks.on('link:click', () => {
 		// Remove the delay for the first time page load
 		document.documentElement.style.setProperty('--content-delay', '0ms')
@@ -844,8 +792,18 @@ const setup = () => {
 	})
 	window.swup.hooks.on('content:replace', () => {
 		initCustomScrollbar();
-		// swup 跳转后重新应用全局设置，确保 custom-bg 在所有页面一致
-		loadCustomBg();
+		// 自定义背景 video/img 位于 swup container（main / #toc）之外，
+		// 页面切换时元素不会被替换、视频持续播放，无需重置。
+		// 只有当元素被换成空元素（src 丢失）时才重新应用背景，
+		// 否则强制 reset+reload 会在切换瞬间闪出底层蓝色背景。
+		const bgVideo = document.getElementById('custom-bg-video');
+		const bgImg = document.getElementById('custom-bg-img');
+		const hasBgSrc =
+			(bgVideo && bgVideo.hasAttribute('src')) ||
+			(bgImg && bgImg.hasAttribute('src'));
+		if (!hasBgSrc) {
+			loadCustomBg();
+		}
 		// 新页面元素重新绑定淡入动画释放（保证 backdrop-filter 在 Chrome 生效）
 		releaseOnloadAnimation();
 	})
@@ -1328,9 +1286,9 @@ if (window.swup) {
         
         checkAnnouncementRead();
         
-        if (!isRead) {
-            showPanel();
-        }
+        // 未读时不再自动弹出面板：只保留按钮 + 红点提示，
+        // 避免右下角同时出现“按钮 + 面板”两个框重叠的视觉效果。
+        // 点击按钮后才展开面板。
         
         btn?.addEventListener('click', () => {
             isOpen = !isOpen;

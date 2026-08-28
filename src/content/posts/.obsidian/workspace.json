@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "zhi-link/zhi-link.md",
+                "file": "free-domain.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "zhi-link"
+              "title": "free-domain"
             }
           }
         ]
@@ -41,7 +41,9 @@
               "type": "file-explorer",
               "state": {
                 "sortOrder": "alphabetical",
-                "autoReveal": false
+                "autoReveal": false,
+                "showSearch": false,
+                "searchQuery": ""
               },
               "icon": "lucide-folder-closed",
               "title": "文件列表"
@@ -185,20 +187,20 @@
   },
   "active": "32d51efb3d3f7915",
   "lastOpenFiles": [
+    "cloudflare-site-up.md",
     "chengguo.png",
+    "zhi-link/zhi-link.md",
     "未命名 4.base",
     "未命名 3.base",
     "未命名 2.base",
     "未命名 1.base",
     "未命名.base",
-    "cloudflare-site-up.md",
     "img/Pasted image 20260730131049.png",
     "img/Pasted image 20260730122916.png",
     "img/Pasted image 20260730122805.png",
     "img/Pasted image 20260730122653.png",
     "img",
     "free-domain.md",
-    "zhi-link/zhi-link.md",
     "PRS/PRS.md",
     "PRS/img/0y.hk_202677_184850.png",
     "PRS/img",
